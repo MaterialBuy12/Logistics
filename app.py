@@ -4,6 +4,7 @@ from flask_restful import Resource, Api
 import pymongo
 import json
 from bson import json_util
+from flask_cors import cross_origin
 
 # creating the flask app
 app = Flask(__name__)
@@ -16,6 +17,7 @@ mydb = client['materialbuy']
 mycol = mydb['sellerrange']
 sellercol = mydb['sellercol']
 buyercol = mydb['buyercol']
+transportcol = mydb['transportcol']
 
 class SellerRange(Resource):
 
