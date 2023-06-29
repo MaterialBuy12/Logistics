@@ -183,6 +183,10 @@ class Buyer(Resource):
             user_input = {"pin": li[i], "level": level}
             buyercol.insert_one(user_input)
         return make_response(jsonify("Inserted Data!"), 200)
+    
+    def get(self):
+        data = [doc for doc in buyercol.find()]
+        return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
 
 
 class Seller(Resource):
@@ -199,6 +203,10 @@ class Seller(Resource):
             user_input = {"pin": li[i], "level": level}
             sellercol.insert_one(user_input)
         return make_response(jsonify("Inserted Data!"), 200)
+    
+    def get(self):
+        data = [doc for doc in sellercol.find()]
+        return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
 
 
 class Transport(Resource):
@@ -346,10 +354,10 @@ class RateChart(Resource):
 # adding the defined resources along with their corresponding urls
 api.add_resource(Home, '/')
 api.add_resource(SellerRange, '/api/seller')
-api.add_resource(Buyer, '/api/sellerdata')
-api.add_resource(Seller, '/api/buyerdata')
+api.add_resource(Buyer, '/api/buyerdata')
+api.add_resource(Seller, '/api/sellerdata')
 api.add_resource(Transport, '/api/transport')
-api.add_resource(WeightRange, '/api/weight')
+api.add_resource(WeightRange, '/api/weight') #..
 api.add_resource(RateChart, '/api/ratechart')
 
 # driver function
