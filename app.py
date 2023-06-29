@@ -246,16 +246,21 @@ class Transport(Resource):
 
 
 class WeightRange(Resource):
-    @cross_origin(allow_headers=['Content-Type'])
-    def put(self):
+    # @cross_origin(allow_headers=['Content-Type'])
+    # def put(self):
 
      
-        data = request.get_json()
+    #     data = request.get_json()
 
-        weightcol.update_one({"title": "krupesh"}, {'$set': data})
+    #     weightcol.update_one({"title": "Krupesh"}, {'$set': data})
 
-        return make_response(jsonify("Data Updated"), 200)
+    #     return make_response(jsonify("Data Updated"), 200)
     def post(self):
+
+        d = [doc for doc in weightcol.find()]
+
+        if len(d) > 0:
+            weightcol.delete_one({"title": "Krupesh"})
 
         data = request.get_json()
 
