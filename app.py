@@ -3,7 +3,7 @@ from flask import Flask, jsonify, request, make_response
 from flask_restful import Resource, Api
 import pymongo
 import json
-from bson import json_util
+from bson import json_util, ObjectId
 from flask_cors import CORS, cross_origin
 
 # creating the flask app
@@ -185,8 +185,13 @@ class Buyer(Resource):
         return make_response(jsonify("Inserted Data!"), 200)
     
     def get(self):
-        data = [doc for doc in buyercol.find()]
+        data = [doc for doc in buyercol.find().sort('_id', pymongo.DESCENDING)]
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
+    
+    def delete(self):
+        data = request.get_json()
+        buyercol.delete_one({"_id": ObjectId(data['id'])})
+        return make_response(jsonify("Data deleted"), 200)
 
 
 class Seller(Resource):
@@ -205,8 +210,13 @@ class Seller(Resource):
         return make_response(jsonify("Inserted Data!"), 200)
     
     def get(self):
-        data = [doc for doc in sellercol.find()]
+        data = [doc for doc in sellercol.find().sort('_id', pymongo.DESCENDING)]
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
+    
+    def delete(self):
+        data = request.get_json()
+        sellercol.delete_one({"_id": ObjectId(data['id'])})
+        return make_response(jsonify("Data deleted"), 200)
 
 
 class Transport(Resource):
