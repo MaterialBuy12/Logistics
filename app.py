@@ -17,7 +17,8 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 
 api = Api(app)
 
-client = pymongo.MongoClient('mongodb+srv://db_admin:admin123@materialbuy-dev.ywwohb6.mongodb.net/?retryWrites=true&w=majority')
+client = pymongo.MongoClient(
+    'mongodb+srv://db_admin:admin123@materialbuy-dev.ywwohb6.mongodb.net/?retryWrites=true&w=majority')
 mydb = client['materialbuy']
 mycol = mydb['sellerrange']
 sellercol = mydb['sellercol']
@@ -27,12 +28,16 @@ weightcol = mydb['weightcol']
 csvcol = mydb['csvcol']
 
 app.route('/', methods=['GET'])
+
+
 def home():
     return "Flask app running"
+
 
 class Home(Resource):
     def get(self):
         return make_response(jsonify("Flask App running"), 200)
+
 
 class SellerRange(Resource):
 
@@ -125,46 +130,45 @@ class SellerRange(Resource):
 
     def get(self):
         data = [doc for doc in mycol.find()]
-        print("data",data)
-        if(len(data) == 0):
+        print("data", data)
+        if (len(data) == 0):
             print("h")
-            
+
             user_input = {"title": "krupesh",
-                      "rating1": "0",
-                      "rating2": "0",
-                      "rating3": "0",
-                      "rating4": "0",
-                      "rating5": "0",
-                      "rating6": "0",
-                      "rating7": "0",
-                      "rating8": "0",
-                      "rating9": "0",
-                      "rating10": "0",
-                      "rating11": "0",
-                      "rating12": "0",
-                      "rating13": "0",
-                      "rating14": "0",
-                      "rating15": "0",
-                      "ran1": "0",
-                      "ran2": "0",
-                      "ran3": "0",
-                      "ran4": "0",
-                      "ran5": "0",
-                      "ran6": "0",
-                      "ran7": "0",
-                      "ran8": "0",
-                      "ran9": "0",
-                      "ran10": "0",
-                      "ran11": "0",
-                      "ran12": "0",
-                      "ran13": "0",
-                      "ran14": "0",
-                      "ran15": "0",
-                      }
+                          "rating1": "0",
+                          "rating2": "0",
+                          "rating3": "0",
+                          "rating4": "0",
+                          "rating5": "0",
+                          "rating6": "0",
+                          "rating7": "0",
+                          "rating8": "0",
+                          "rating9": "0",
+                          "rating10": "0",
+                          "rating11": "0",
+                          "rating12": "0",
+                          "rating13": "0",
+                          "rating14": "0",
+                          "rating15": "0",
+                          "ran1": "0",
+                          "ran2": "0",
+                          "ran3": "0",
+                          "ran4": "0",
+                          "ran5": "0",
+                          "ran6": "0",
+                          "ran7": "0",
+                          "ran8": "0",
+                          "ran9": "0",
+                          "ran10": "0",
+                          "ran11": "0",
+                          "ran12": "0",
+                          "ran13": "0",
+                          "ran14": "0",
+                          "ran15": "0",
+                          }
 
             mycol.insert_one(user_input)
             data = [doc for doc in mycol.find()]
-
 
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
 
@@ -183,11 +187,28 @@ class Buyer(Resource):
             user_input = {"pin": li[i], "level": level}
             buyercol.insert_one(user_input)
         return make_response(jsonify("Inserted Data!"), 200)
-    
+
     def get(self):
-        data = [doc for doc in buyercol.find().sort('_id', pymongo.DESCENDING)]
+        query = request.args.get('pin')
+        # print(query)
+        if query:
+            data = {"data": buyercol.find_one({"pin": query})}
+        else:
+            data = [doc for doc in buyercol.find().sort(
+            '_id', pymongo.DESCENDING)]
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
-    
+
+    def put(self):
+        data = request.get_json()
+        updatebody = {
+            "$set": {
+                "pin": data['pin'],
+                "level": data['level']
+            }
+        }
+        buyercol.update_one({"_id": ObjectId(data['id'])}, update=updatebody)
+        return make_response(jsonify("Data updated"), 200)
+
     def delete(self):
         data = request.get_json()
         buyercol.delete_one({"_id": ObjectId(data['id'])})
@@ -208,11 +229,28 @@ class Seller(Resource):
             user_input = {"pin": li[i], "level": level}
             sellercol.insert_one(user_input)
         return make_response(jsonify("Inserted Data!"), 200)
-    
+
     def get(self):
-        data = [doc for doc in sellercol.find().sort('_id', pymongo.DESCENDING)]
+        query = request.args.get('pin')
+        # print(query)
+        if query:
+            data = {"data": sellercol.find_one({"pin": query})}
+        else:
+            data = [doc for doc in sellercol.find().sort(
+            '_id', pymongo.DESCENDING)]
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
     
+    def put(self):
+        data = request.get_json()
+        updatebody = {
+            "$set": {
+                "pin": data['pin'],
+                "level": data['level']
+            }
+        }
+        sellercol.update_one({"_id": ObjectId(data['id'])}, update=updatebody)
+        return make_response(jsonify("Data updated"), 200)
+
     def delete(self):
         data = request.get_json()
         sellercol.delete_one({"_id": ObjectId(data['id'])})
@@ -239,14 +277,19 @@ class Transport(Resource):
         return make_response(jsonify("Inserted Data!"), 200)
 
     def get(self):
-
-        data = [doc for doc in transportcol.find()]
-        data=data[::-1]
+        query = request.args.get('email')
+        if query:
+            data = [doc for doc in transportcol.find({"emailid": {
+                "$regex": query
+            }})]
+        else:
+            data = [doc for doc in transportcol.find()]
+        data = data[::-1]
 
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
 
     def delete(self):
-        print("wre",request.get_json())
+        print("wre", request.get_json())
         data = request.get_json()
         print("trandelete")
 
@@ -256,15 +299,7 @@ class Transport(Resource):
 
 
 class WeightRange(Resource):
-    # @cross_origin(allow_headers=['Content-Type'])
-    # def put(self):
 
-     
-    #     data = request.get_json()
-
-    #     weightcol.update_one({"title": "Krupesh"}, {'$set': data})
-
-    #     return make_response(jsonify("Data Updated"), 200)
     def post(self):
 
         d = [doc for doc in weightcol.find()]
@@ -325,12 +360,12 @@ class WeightRange(Resource):
         weightcol.insert_one(user_input)
 
         return make_response(jsonify("Data Inserted!"), 200)
-  
 
     def get(self):
         data = [doc for doc in weightcol.find()]
 
         return make_response(jsonify(json.loads(json_util.dumps(data))), 200)
+
 
 class RateChart(Resource):
 
@@ -338,21 +373,17 @@ class RateChart(Resource):
 
         data = request.get_json()
         data1 = [doc for doc in csvcol.find()]
-        if(len(data1)>0):
+        if (len(data1) > 0):
             csvcol.drop()
-            csvcol.insert_one({"values":data})
+            csvcol.insert_one({"values": data})
         else:
-            csvcol.insert_one({"values":data})
+            csvcol.insert_one({"values": data})
 
+        print("url", data)
 
-        
-        print("url",data)
-    
         # csvcol.insert_one( )
         # df = pd.read_csv("credits.csv")
         # data = df.to_dict("records")
-
-       
 
         # file = request.files['file']
 
@@ -372,7 +403,7 @@ api.add_resource(SellerRange, '/api/seller')
 api.add_resource(Buyer, '/api/buyerdata')
 api.add_resource(Seller, '/api/sellerdata')
 api.add_resource(Transport, '/api/transport')
-api.add_resource(WeightRange, '/api/weight') #..
+api.add_resource(WeightRange, '/api/weight')  # ..
 api.add_resource(RateChart, '/api/ratechart')
 
 # driver function
