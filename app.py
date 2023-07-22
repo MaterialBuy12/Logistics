@@ -190,9 +190,12 @@ class Buyer(Resource):
 
     def get(self):
         query = request.args.get('pin')
+        objid = request.args.get('id')
         # print(query)
         if query:
             data = {"data": buyercol.find_one({"pin": query})}
+        elif objid:
+            data = buyercol.find_one({"_id": ObjectId(objid)})
         else:
             data = [doc for doc in buyercol.find().sort(
             '_id', pymongo.DESCENDING)]
@@ -232,9 +235,12 @@ class Seller(Resource):
 
     def get(self):
         query = request.args.get('pin')
+        objid = request.args.get('id')
         # print(query)
         if query:
             data = {"data": sellercol.find_one({"pin": query})}
+        elif objid:
+            data = sellercol.find_one({"_id": ObjectId(objid)})
         else:
             data = [doc for doc in sellercol.find().sort(
             '_id', pymongo.DESCENDING)]
