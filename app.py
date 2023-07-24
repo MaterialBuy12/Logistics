@@ -193,7 +193,7 @@ class Buyer(Resource):
         objid = request.args.get('id')
         # print(query)
         if query:
-            data = {"data": buyercol.find_one({"pin": query})}
+            data = {"data": buyercol.find({"pin": query})}
         elif objid:
             data = buyercol.find_one({"_id": ObjectId(objid)})
         else:
@@ -238,7 +238,7 @@ class Seller(Resource):
         objid = request.args.get('id')
         # print(query)
         if query:
-            data = {"data": sellercol.find_one({"pin": query})}
+            data = {"data": sellercol.find({"pin": query})}
         elif objid:
             data = sellercol.find_one({"_id": ObjectId(objid)})
         else:
