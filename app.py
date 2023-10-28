@@ -1,9 +1,11 @@
 # using flask_restful
-from flask import Flask, jsonify, request, make_response
+import io
+from flask import Flask, Response, jsonify, request, make_response
 from flask_restful import Resource, Api
 import pymongo
 import json
 from bson import json_util, ObjectId
+import csv
 from flask_cors import CORS, cross_origin
 
 # creating the flask app
@@ -386,6 +388,24 @@ class RateChart(Resource):
             csvcol.insert_one({"values": data})
 
         print("url", data)
+        return make_response(jsonify("Uploaded Csv"), 200)
+
+    def get(self):
+        data = [doc for doc in csvcol.find()]
+        print(data[0]['values'])
+        values = data[0]['values']
+
+        if values:
+            output = io.StringIO()
+            writer = csv.writer(output)
+            for row in values:
+                writer.writerow(row)
+
+                # Prepare the CSV response
+            response = Response(output.getvalue(), content_type='text/csv')
+            response.headers['Content-Disposition'] = 'attachment; filename=data.csv'
+            return response
+        return make_response(jsonify("No data found"), 404)
 
         # csvcol.insert_one( )
         # df = pd.read_csv("credits.csv")
@@ -398,10 +418,7 @@ class RateChart(Resource):
         #     file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         #     resp = jsonify({'message' : 'File successfully uploaded'})
         #     resp.status_code = 201
-        #     return resp
-
-        return make_response(jsonify("Uploaded Csv"), 200)
-
+        #     return resp     
 
 # adding the defined resources along with their corresponding urls
 api.add_resource(Home, '/')
