@@ -285,9 +285,9 @@ class Transport(Resource):
         return make_response(jsonify("Inserted Data!"), 200)
 
     def get(self):
-        query = request.args.get('email')
+        query = request.args.get('name')
         if query:
-            data = [doc for doc in transportcol.find({"emailid": {
+            data = [doc for doc in transportcol.find({"name": {
                 "$regex": query
             }})]
         else:
