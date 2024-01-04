@@ -313,7 +313,7 @@ class WeightRange(Resource):
         d = [doc for doc in weightcol.find()]
 
         if len(d) > 0:
-            weightcol.delete_one({"title": "Krupesh"})
+            weightcol.delete_one({"title": "krupesh"})
 
         data = request.get_json()
 
