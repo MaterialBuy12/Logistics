@@ -96,7 +96,7 @@ def shipcostcalc(pincode, productid, variantid, quantity):
         if volwtunit == "g":
             volwt = float(volwt) / 1000
         
-        box1 = variant_details.get('unit18A', 'N/A')
+        box1 = variant_details.get('unit18A', '')
         box2 = variant_details.get('unit18B', 'N/A')
         box3 = variant_details.get('unit18C', 'N/A')
         box4 = variant_details.get('unit18D', 'N/A')
@@ -106,7 +106,7 @@ def shipcostcalc(pincode, productid, variantid, quantity):
         volbox4 = variant_details.get('vol18H', 'N/A')
         print(deadwt, volwt, box1, box2, box3, box4, volbox1, volbox2, volbox3, volbox4)
 
-        if box1 == 'N/A':
+        if box1 == '':
             actwt = deadwt
             result_boxes = 0
             total_weight = actwt
@@ -389,7 +389,7 @@ def fetch_pincode_by_warehouseid(given_warehouseid):
     pincode_list = [doc.get("pincode") for doc in result]
     return pincode_list
 
-#high = shipcostcalc('400001',ObjectId("6592a807d786680034581eb4"),ObjectId("6592a859d786680034581eb5"),1467)
+high = shipcostcalc('403501',ObjectId("65b248512347d00033a50ddf"),ObjectId("65b248702347d00033a50de0"),3000)
 
 #CODE ENDS HERE
 #ANKIT LOGISTICS
