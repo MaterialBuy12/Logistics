@@ -9,6 +9,7 @@ import csv
 from flask_cors import CORS, cross_origin
 #import pgeocode
 import requests
+import http.client
 
 # creating the flask app
 
@@ -125,6 +126,102 @@ def shipcostcalc(pincode, productid, variantid, quantity):
         if actwt <= 10:
             print("3PL")
             shipType = "3PL"
+            vendorwarehouse = fetch_vendor_warehouse_ids(curr_vid)
+            print(vendorwarehouse)
+            sellers = []
+            
+            for request in vendorwarehouse:
+                print(f"Vendor ID: {request.get('vendorid')}, Warehouse ID: {request.get('warehouseid')}")
+                given_warehouseid = request.get('warehouseid')
+                print(given_warehouseid)
+                pincode_result = fetch_pincode_by_warehouseid(given_warehouseid)
+                
+                if pincode_result:
+                    print(f"Pincode(s) for Warehouse ID '{given_warehouseid}':")
+                    result_string = pincode_result[0]
+                    print(result_string)
+                else:
+                    print(f"No matching documents found for Warehouse ID '{given_warehouseid}'.")
+                
+                sellers.append(result_string)
+            
+            print(sellers)
+            conn = http.client.HTTPSConnection("apiv2.shiprocket.in")
+            payload = json.dumps({
+            "email": "materialbuy.management@gmail.com",
+            "password": "Material@3007"
+            })
+            headers = {
+            'Content-Type': 'application/json'
+            }
+            try:
+                conn.request("POST", "/v1/external/auth/login", payload, headers)
+                res = conn.getresponse()
+
+                if res.status == 200:
+                    data = res.read().decode("utf-8")
+                    # Extract the token from the response
+                    token = json.loads(data).get('token')
+                    #print("Token:", token)
+                else:
+                    print(f"Error: {res.status} - {res.reason}")
+
+            except Exception as e:
+                print(f"An error occurred: {e}")
+
+            finally:
+                conn.close()
+            pl3cost = []
+            token = 'Bearer '+ token
+            print(curr_buyerpc)
+            for seller_curr in sellers:
+                conn = http.client.HTTPSConnection("apiv2.shiprocket.in")
+                payload = json.dumps({
+                "pickup_postcode": seller_curr,
+                "delivery_postcode": curr_buyerpc,
+                "cod": "0",
+                "weight": actwt
+                })
+                headers = {
+                'Content-Type': 'application/json',
+                'Authorization': token
+                }
+                conn.request("GET", "/v1/external/courier/serviceability/", payload, headers)
+                res = conn.getresponse()
+                dataa = res.read()
+                #print(dataa.decode("utf-8"))
+                json_data_str = dataa.decode('utf-8')
+                data = json.loads(json_data_str)
+
+                # Extracting the available courier companies
+                courier_companies = data.get("data", {}).get("available_courier_companies", [])
+                conn.close()
+
+
+                # Check if there are any courier companies
+                if courier_companies:
+                    # Find the courier company with the minimum freight charge
+                    min_freight_company = min(courier_companies, key=lambda x: x.get("freight_charge", float('inf')))
+
+                    # Extract relevant information
+                    min_freight_courier_name = min_freight_company.get("courier_name")
+                    min_freight_charge = min_freight_company.get("freight_charge")
+
+                    # Display the result
+                    print(f"The courier company with the minimum freight charge is '{min_freight_courier_name}' with a charge of {min_freight_charge} INR.")
+                    pl3cost.append(min_freight_charge)   
+                    print(pl3cost)         
+                else:
+                    print("No courier companies available.")
+                shipCosts = []
+                shipCosts = pl3cost
+                total_weight = actwt
+                print(shipCosts)
+                print(vendorwarehouse)
+                print(total_weight)
+                print(result_boxes)
+                print(shipType)
+            return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType
         else:
             print("TRANSPORT")
             shipType = "TRANSPORT"
@@ -167,123 +264,122 @@ def shipcostcalc(pincode, productid, variantid, quantity):
                 codeD = '9'
             
             print(codeD, "CODED")
+            vendorwarehouse = fetch_vendor_warehouse_ids(curr_vid)
+            print(vendorwarehouse)
+            
+            sellers = []
+            
+            for request in vendorwarehouse:
+                print(f"Vendor ID: {request.get('vendorid')}, Warehouse ID: {request.get('warehouseid')}")
+                given_warehouseid = request.get('warehouseid')
+                print(given_warehouseid)
+                pincode_result = fetch_pincode_by_warehouseid(given_warehouseid)
+                
+                if pincode_result:
+                    print(f"Pincode(s) for Warehouse ID '{given_warehouseid}':")
+                    result_string = pincode_result[0]
+                    print(result_string)
+                else:
+                    print(f"No matching documents found for Warehouse ID '{given_warehouseid}'.")
+                
+                sellers.append(result_string)
+            
+            print(sellers)
+            codeB = [str(sellerpin(seller)) for seller in sellers]
+            print(codeB, "CODEB")
+            buyersellerdist = []
+            #dist = pgeocode.GeoDistance('in')
+            
+            for seller_pincode in sellers:
+                #distance = dist.query_postal_code(curr_buyerpc, seller_pincode)
+                api_key = 'AIzaSyCfu3BHDymFSIcPsub6tlOqpjdbxT3O09Q'
+                distance_text, distance_value = get_distance(api_key, curr_buyerpc, seller_pincode)
+                buyersellerdist.append(float(distance_text))
+            
+            print(buyersellerdist)
+            all_values = fetch_all_documentss()
+            
+            for document in all_values:
+                print("document")
+            
+            dist1 = float(document.get('rating1', 'N/A'))
+            dist2 = float(document.get('rating2', 'N/A'))
+            dist3 = float(document.get('rating3', 'N/A'))
+            dist4 = float(document.get('rating4', 'N/A'))
+            dist5 = float(document.get('rating5', 'N/A'))
+            dist6 = float(document.get('rating6', 'N/A'))
+            dist7 = float(document.get('rating7', 'N/A'))
+            dist8 = float(document.get('rating8', 'N/A'))
+            dist9 = float(document.get('rating9', 'N/A'))
+            dist10 = float(document.get('rating10', 'N/A'))
+            dist11 = float(document.get('rating11', 'N/A'))
+            dist12 = float(document.get('rating12', 'N/A'))
+            dist13 = float(document.get('rating13', 'N/A'))
+            dist14 = float(document.get('rating14', 'N/A'))
+            dist15 = float(document.get('rating15', 'N/A'))
+            codeC = []
+            
+            for distanceval in buyersellerdist:
+                if distanceval <= dist1:
+                    distanceval = 'A'
+                elif dist1 < distanceval <= dist2:
+                    distanceval = 'B'
+                elif dist2 < distanceval <= dist3:
+                    distanceval = 'C'
+                elif dist3 < distanceval <= dist4:
+                    distanceval = 'D'
+                elif dist4 < distanceval <= dist5:
+                    distanceval = 'E'
+                elif dist5 < distanceval <= dist6:
+                    distanceval = 'F'
+                elif dist6 < distanceval <= dist7:
+                    distanceval = 'G'
+                elif dist7 < distanceval <= dist8:
+                    distanceval = 'H'
+                elif dist8 < distanceval <= dist9:
+                    distanceval = 'I'
+                elif dist9 < distanceval <= dist10:
+                    distanceval = 'J'
+                elif dist10 < distanceval <= dist11:
+                    distanceval = 'K'
+                elif dist11 < distanceval <= dist12:
+                    distanceval = 'L'
+                elif dist12 < distanceval <= dist13:
+                    distanceval = 'M'
+                elif dist13 < distanceval <= dist14:
+                    distanceval = 'N'
+                elif dist14 < distanceval <= dist15:
+                    distanceval = 'O'
+                
+                codeC.append(distanceval)
+            
+            print(codeC, "CODEC")
+            
+            # Ensure that buyersellerdist and codeB have the same length
+            min_length = min(len(buyersellerdist), len(codeB))
+            buyersellerdist = buyersellerdist[:min_length]
+            codeB = codeB[:min_length]
+            
+            # Update logicode using zip to iterate over both lists simultaneously
+            logicode = [codeA + codeB_val + codeD + codeC[i] for i, codeB_val in enumerate(codeB)]
+            
+            print("CODES: ", logicode)
+            
+            shipCosts = []
+            
+            for code in logicode:
+                corresponding_value = find_value_by_key(code)
+                
+                if corresponding_value is not None:
+                    print(f"Corresponding value for key '{code}': {corresponding_value}")
+                    print(corresponding_value,actwt)
+                    shipCosts.append(float(corresponding_value) * actwt)
+                else:
+                    print(f"No matching document found for key '{code}'.")
+            
+            return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType
     else:
         print(f"No data found for product {curr_pid}, variant {curr_vid}")
-    
-    vendorwarehouse = fetch_vendor_warehouse_ids(curr_vid)
-    print(vendorwarehouse)
-    
-    sellers = []
-    
-    for request in vendorwarehouse:
-        print(f"Vendor ID: {request.get('vendorid')}, Warehouse ID: {request.get('warehouseid')}")
-        given_warehouseid = request.get('warehouseid')
-        print(given_warehouseid)
-        pincode_result = fetch_pincode_by_warehouseid(given_warehouseid)
-        
-        if pincode_result:
-            print(f"Pincode(s) for Warehouse ID '{given_warehouseid}':")
-            result_string = pincode_result[0]
-            print(result_string)
-        else:
-            print(f"No matching documents found for Warehouse ID '{given_warehouseid}'.")
-        
-        sellers.append(result_string)
-    
-    print(sellers)
-    codeB = [str(sellerpin(seller)) for seller in sellers]
-    print(codeB, "CODEB")
-    buyersellerdist = []
-    #dist = pgeocode.GeoDistance('in')
-    
-    for seller_pincode in sellers:
-        #distance = dist.query_postal_code(curr_buyerpc, seller_pincode)
-        api_key = 'AIzaSyCfu3BHDymFSIcPsub6tlOqpjdbxT3O09Q'
-        distance_text, distance_value = get_distance(api_key, curr_buyerpc, seller_pincode)
-        buyersellerdist.append(float(distance_text))
-    
-    print(buyersellerdist)
-    all_values = fetch_all_documentss()
-    
-    for document in all_values:
-        print("document")
-    
-    dist1 = float(document.get('rating1', 'N/A'))
-    dist2 = float(document.get('rating2', 'N/A'))
-    dist3 = float(document.get('rating3', 'N/A'))
-    dist4 = float(document.get('rating4', 'N/A'))
-    dist5 = float(document.get('rating5', 'N/A'))
-    dist6 = float(document.get('rating6', 'N/A'))
-    dist7 = float(document.get('rating7', 'N/A'))
-    dist8 = float(document.get('rating8', 'N/A'))
-    dist9 = float(document.get('rating9', 'N/A'))
-    dist10 = float(document.get('rating10', 'N/A'))
-    dist11 = float(document.get('rating11', 'N/A'))
-    dist12 = float(document.get('rating12', 'N/A'))
-    dist13 = float(document.get('rating13', 'N/A'))
-    dist14 = float(document.get('rating14', 'N/A'))
-    dist15 = float(document.get('rating15', 'N/A'))
-    codeC = []
-    
-    for distanceval in buyersellerdist:
-        if distanceval <= dist1:
-            distanceval = 'A'
-        elif dist1 < distanceval <= dist2:
-            distanceval = 'B'
-        elif dist2 < distanceval <= dist3:
-            distanceval = 'C'
-        elif dist3 < distanceval <= dist4:
-            distanceval = 'D'
-        elif dist4 < distanceval <= dist5:
-            distanceval = 'E'
-        elif dist5 < distanceval <= dist6:
-            distanceval = 'F'
-        elif dist6 < distanceval <= dist7:
-            distanceval = 'G'
-        elif dist7 < distanceval <= dist8:
-            distanceval = 'H'
-        elif dist8 < distanceval <= dist9:
-            distanceval = 'I'
-        elif dist9 < distanceval <= dist10:
-            distanceval = 'J'
-        elif dist10 < distanceval <= dist11:
-            distanceval = 'K'
-        elif dist11 < distanceval <= dist12:
-            distanceval = 'L'
-        elif dist12 < distanceval <= dist13:
-            distanceval = 'M'
-        elif dist13 < distanceval <= dist14:
-            distanceval = 'N'
-        elif dist14 < distanceval <= dist15:
-            distanceval = 'O'
-        
-        codeC.append(distanceval)
-    
-    print(codeC, "CODEC")
-    
-    # Ensure that buyersellerdist and codeB have the same length
-    min_length = min(len(buyersellerdist), len(codeB))
-    buyersellerdist = buyersellerdist[:min_length]
-    codeB = codeB[:min_length]
-    
-    # Update logicode using zip to iterate over both lists simultaneously
-    logicode = [codeA + codeB_val + codeD + codeC[i] for i, codeB_val in enumerate(codeB)]
-    
-    print("CODES: ", logicode)
-    
-    shipCosts = []
-    
-    for code in logicode:
-        corresponding_value = find_value_by_key(code)
-        
-        if corresponding_value is not None:
-            print(f"Corresponding value for key '{code}': {corresponding_value}")
-            print(corresponding_value,actwt)
-            shipCosts.append(float(corresponding_value) * actwt)
-        else:
-            print(f"No matching document found for key '{code}'.")
-    
-    return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType
 
 # You can call this function with your input values
 # shipcostcalc(your_pincode, your_productid, your_variantid, your_quantity)
@@ -389,7 +485,7 @@ def fetch_pincode_by_warehouseid(given_warehouseid):
     pincode_list = [doc.get("pincode") for doc in result]
     return pincode_list
 
-high = shipcostcalc('403501',ObjectId("65b248512347d00033a50ddf"),ObjectId("65b248702347d00033a50de0"),3000)
+#high = shipcostcalc('401202',ObjectId("65b76d83c1dc780034f6ac11"),ObjectId("65b76deac1dc780034f6ac13"),2)
 
 #CODE ENDS HERE
 #ANKIT LOGISTICS
