@@ -49,6 +49,12 @@ productrequests = newdb['productrequests']
 warehouses = newdb['warehouses']
 wtflag = ""
 
+def find_prices_by_productid(productid):
+    query = {"productid": productid}
+    result = productrequests.find(query)
+    prices_list = [doc.get("price") for doc in result]
+    return prices_list
+
 def get_distance(api_key, origin_pincode, destination_pincode):
     base_url = 'https://maps.googleapis.com/maps/api/distancematrix/json'
     origin = f'{origin_pincode}, India'  # You can replace 'India' with the relevant country
@@ -128,6 +134,9 @@ def shipcostcalc(pincode, productid, variantid, quantity):
             shipType = "3PL"
             vendorwarehouse = fetch_vendor_warehouse_ids(curr_vid)
             print(vendorwarehouse)
+            prices_result = find_prices_by_productid(curr_vid)
+            print("new")
+            print(prices_result)
             sellers = []
             
             for request in vendorwarehouse:
@@ -266,7 +275,9 @@ def shipcostcalc(pincode, productid, variantid, quantity):
             print(codeD, "CODED")
             vendorwarehouse = fetch_vendor_warehouse_ids(curr_vid)
             print(vendorwarehouse)
-            
+            prices_result = find_prices_by_productid(curr_vid)
+            print("new")
+            print(prices_result)
             sellers = []
             
             for request in vendorwarehouse:
