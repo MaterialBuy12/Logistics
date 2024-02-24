@@ -230,7 +230,7 @@ def shipcostcalc(pincode, productid, variantid, quantity):
                 print(total_weight)
                 print(result_boxes)
                 print(shipType)
-            return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType
+            return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType, prices_result
         else:
             print("TRANSPORT")
             shipType = "TRANSPORT"
@@ -388,7 +388,7 @@ def shipcostcalc(pincode, productid, variantid, quantity):
                 else:
                     print(f"No matching document found for key '{code}'.")
             
-            return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType
+            return shipCosts, vendorwarehouse, total_weight, result_boxes, shipType, prices_result
     else:
         print(f"No data found for product {curr_pid}, variant {curr_vid}")
 
