@@ -744,8 +744,8 @@ class Shipping(Resource):
         variantid = data['variantid']
         quantity = data['quantity']
 
-        shipCost, vendorWareHouse, totalBoxesWeight, boxDetails, shipType =  shipcostcalc(pincode, ObjectId(productid), ObjectId(variantid), quantity)
-
+        shipCost, vendorWareHouse, totalBoxesWeight, boxDetails, shipType, pricesresult =  shipcostcalc(pincode, ObjectId(productid), ObjectId(variantid), quantity)
+        
         vendorWareHouse = [
         {
             'vendorid': str(request.get('vendorid')),  # Convert ObjectId to string
@@ -759,7 +759,8 @@ class Shipping(Resource):
             "vendorWareHouse": vendorWareHouse,
             "total_weight": totalBoxesWeight,
             "boxDetails": boxDetails,
-            "shipType": shipType
+            "shipType": shipType,
+            "pricesresult": pricesresult
         }
         
         return make_response(jsonify(output), 200)
